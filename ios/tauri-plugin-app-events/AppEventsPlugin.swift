@@ -21,6 +21,7 @@ class AppEvetnsPlugin: Plugin {
   private var resumeChannel: Channel? = nil
   private var pauseChannel: Channel? = nil
   private var hasEnteredBackground = false
+  private var isReady = false
 
   override func load(webview: WKWebView) {
     super.load(webview: webview)
@@ -28,9 +29,13 @@ class AppEvetnsPlugin: Plugin {
     NotificationCenter.default.addObserver(self, selector: #selector(applicationDidEnterBackground), name: UIApplication.didEnterBackgroundNotification, object: nil)
   }
 
+  deinit {
+    NotificationCenter.default.removeObserver(self)
+  }
+
   @objc func applicationDidBecomeActive(notification: NSNotification) {
     os_log(.debug, log: log, "Application Did Become Active")
-    guard hasEnteredBackground else { return }
+    guard hasEnteredBackground, isReady else { return }
     trigger("resume", data: JSObject())
     resumeChannel?.send(JSObject())
   }
@@ -38,6 +43,7 @@ class AppEvetnsPlugin: Plugin {
   @objc func applicationDidEnterBackground(notification: NSNotification) {
     os_log(.debug, log: log, "Application Did Enter Background")
     hasEnteredBackground = true
+    guard isReady else { return }
     trigger("pause", data: JSObject())
     pauseChannel?.send(JSObject())
   }
@@ -46,6 +52,7 @@ class AppEvetnsPlugin: Plugin {
     os_log(.debug, log: log, "setResumeHandler")
     let args = try invoke.parseArgs(SetEventHandlerArgs.self)
     resumeChannel = args.handler
+    isReady = true
     invoke.resolve()
   }
 
@@ -53,6 +60,7 @@ class AppEvetnsPlugin: Plugin {
     os_log(.debug, log: log, "setPauseHandler")
     let args = try invoke.parseArgs(SetEventHandlerArgs.self)
     pauseChannel = args.handler
+    isReady = true
     invoke.resolve()
   }
 }
