@@ -21,8 +21,8 @@ class AppEvetnsPlugin: Plugin {
   private var resumeChannel: Channel? = nil
   private var pauseChannel: Channel? = nil
 
-  override init() {
-    super.init()
+  override func load(webview: WKWebView) {
+    super.load(webview: webview)
     NotificationCenter.default.addObserver(self, selector: #selector(applicationDidBecomeActive), name: UIApplication.didBecomeActiveNotification, object: nil)
     NotificationCenter.default.addObserver(self, selector: #selector(applicationDidEnterBackground), name: UIApplication.didEnterBackgroundNotification, object: nil)
   }
