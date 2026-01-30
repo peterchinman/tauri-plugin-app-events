@@ -20,6 +20,7 @@ class SetEventHandlerArgs: Decodable {
 class AppEvetnsPlugin: Plugin {
   private var resumeChannel: Channel? = nil
   private var pauseChannel: Channel? = nil
+  private var hasEnteredBackground = false
 
   override func load(webview: WKWebView) {
     super.load(webview: webview)
@@ -29,12 +30,14 @@ class AppEvetnsPlugin: Plugin {
 
   @objc func applicationDidBecomeActive(notification: NSNotification) {
     os_log(.debug, log: log, "Application Did Become Active")
+    guard hasEnteredBackground else { return }
     trigger("resume", data: JSObject())
     resumeChannel?.send(JSObject())
   }
 
   @objc func applicationDidEnterBackground(notification: NSNotification) {
     os_log(.debug, log: log, "Application Did Enter Background")
+    hasEnteredBackground = true
     trigger("pause", data: JSObject())
     pauseChannel?.send(JSObject())
   }
